@@ -2,7 +2,6 @@
 .notranslate {pointer-events:none}
 .notion-topbar {display:none}
 .notion-sidebar-mobile {display:none !important;}
-.whenContentEditable {pointer-events:none!important;}
 .notion-topbar-mobile {display:none !important;}
 
 

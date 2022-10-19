@@ -70,6 +70,16 @@ class _MyHomePageState extends State<MyHomePage> {
         userAgent: 'Mozilla/5.0 (Linux; Android 7.0; SM-G930V Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.125 Mobile Safari/537.36',
 
         javascriptMode: JavascriptMode.unrestricted, //  <---  this is the key
+
+        javascriptChannels: {
+                JavascriptChannel(
+                    name: 'Print',
+                    onMessageReceived: (JavascriptMessage message) {
+
+                    }),
+
+              },
+
         onWebViewCreated: (WebViewController webViewController) {
           _wvc = webViewController;
 
@@ -85,12 +95,12 @@ class _MyHomePageState extends State<MyHomePage> {
           _wvc?.runJavascript(overrideCSS);
 
 
+
           String overrideJS =
           await JSInjectionString(context, 'assets/custom.js');
 
 
           _wvc?.runJavascript(overrideJS);
-
 
           },
       ),
@@ -131,6 +141,7 @@ class _MyHomePageState extends State<MyHomePage> {
           FloatingActionButton(
             onPressed: () async {
 
+              await undo(context);
               }
                                      ,
 
@@ -143,6 +154,14 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+
+  Future<void> undo(BuildContext context) async {
+      String overrideJS ='document.execCommand("undo", false, null);';
+
+
+
+    _wvc?.runJavascript(overrideJS);
   }
   Future<String> CSSInjectionString(BuildContext context, String s) async {
     String cssOverride = await loadStringAsset(context, s);
