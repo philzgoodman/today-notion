@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'private.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 void main() {
@@ -51,12 +52,13 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   WebViewController? _wvc;
-  String get url => 'https://www.notion.so/TODAY-758bfe52c0e54d308867a113c0366ce6';
 
+  String get url =>
+      Def.privateUrl;
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
 
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
@@ -69,45 +71,37 @@ class _MyHomePageState extends State<MyHomePage> {
         _wvc?.goBack();
         return false;
       },
-      child:  Scaffold(
+      child: Scaffold(
         backgroundColor: Colors.black,
         body: WebView(
-          userAgent: 'Mozilla/5.0 (Linux; Android 7.0; SM-G930V Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.125 Mobile Safari/537.36',
+          userAgent:
+              'Mozilla/5.0 (Linux; Android 7.0; SM-G930V Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.125 Mobile Safari/537.36',
 
-          javascriptMode: JavascriptMode.unrestricted, //  <---  this is the key
+          javascriptMode: JavascriptMode.unrestricted,
 
           javascriptChannels: {
-                  JavascriptChannel(
-                      name: 'Print',
-                      onMessageReceived: (JavascriptMessage message) {
-
-                      }),
-
-                },
+            JavascriptChannel(
+                name: 'Print',
+                onMessageReceived: (JavascriptMessage message) {}),
+          },
 
           onWebViewCreated: (WebViewController webViewController) {
             _wvc = webViewController;
 
             _wvc?.loadUrl(
-                'https://www.notion.so/TODAY-758bfe52c0e54d308867a113c0366ce6');
+                Def.privateUrl);
+          },
+
+          onPageStarted: (String url) async {
+            ctrlZ();
           },
 
           onPageFinished: (String url) async {
             String overrideCSS =
                 await CSSInjectionString(context, 'assets/custom.css');
 
-
             _wvc?.runJavascript(overrideCSS);
-
-
-/*
-            String overrideJS =
-            await JSInjectionString(context, 'assets/custom.js');
-
-
-            _wvc?.runJavascript(overrideJS); */
-
-            },
+          },
         ),
         floatingActionButton: Column(
           mainAxisAlignment: MainAxisAlignment.end,
@@ -145,55 +139,57 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             FloatingActionButton(
               onPressed: () async {
-
                 await undo(context);
-                }
-                                       ,
-
-
+                ctrlZ();
+                undo2(context);
+              },
               tooltip: 'Forward',
               child: const Icon(Icons.undo),
             ),
           ],
-
         ),
         // This trailing comma makes auto-formatting nicer for build methods.
       ),
     );
   }
 
+  void ctrlZ() {
+    _wvc?.runJavascript(
+        "document.dispatchEvent(new KeyboardEvent('keydown',{'key':'Control'}));");
+    _wvc?.runJavascript(
+        "document.dispatchEvent(new KeyboardEvent('keydown',{'key':'Z'}));");
+    _wvc?.runJavascript(
+        "document.dispatchEvent(new KeyboardEvent('keyup',{'key':'Z'}));");
+    _wvc?.runJavascript(
+        "document.dispatchEvent(new KeyboardEvent('keyup',{'key':'Control'}));");
+  }
+
+  Future<void> undo2(BuildContext context) async {
+    _wvc?.runJavascript(
+        "document.dispatchEvent(new KeyboardEvent('keydown',{'key':'Undo'}));console.log('key undo sent')");
+    _wvc?.runJavascript(
+        "document.execCommand(new KeyboardEvent('keydown',{'key':'Undo'}));console.log('key undo sent via execCommand')");
+  }
+
   Future<void> undo(BuildContext context) async {
-      String overrideJS ="document.execCommand('undo', false, null);console.log('undo');var keyboardEvent = document.createEvent('KeyboardEvent'); var initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent'; keyboardEvent[initMethod]( 'keydown', true, true, window, true, false, false, false, 90, 0, ); document.dispatchEvent(keyboardEvent);var ctrlEvent = new KeyboardEvent('keydown', {bubbles : true, cancelable : true, keyCode : 17, char : 17, shiftKey : true}); var aEvent = new KeyboardEvent('keydown', {bubbles : true, cancelable : true, keyCode : 90, char : 90, shiftKey : true}); document.dispatchEvent(ctrlEvent); document.dispatchEvent(aEvent);";
-
-
-
-
-
-
-
-
-
-
-
-
+    String overrideJS =
+        "document.execCommand('undo', false, null);console.log('undo');";
     _wvc?.runJavascript(overrideJS);
   }
+
   Future<String> CSSInjectionString(BuildContext context, String s) async {
     String cssOverride = await loadStringAsset(context, s);
     return "var cssOverrideStyle = document.createElement('style');"
         "cssOverrideStyle.textContent = `$cssOverride`;"
         "document.head.append(cssOverrideStyle);";
   }
+
   Future<String> JSInjectionString(BuildContext context, String s) async {
-    String cssOverride = await loadStringAsset(context, s);
+    String jsOverride = await loadStringAsset(context, s);
     return "var JSOverrideStyle = document.createElement('script');"
-        "JSOverrideStyle.textContent = `$cssOverride`;"
+        "JSOverrideStyle.textContent = `$jsOverride`;"
         "document.head.append(JSOverrideStyle);";
   }
-
-
-
-
 
   Future<String> loadStringAsset(BuildContext context, String asset) async {
     return await DefaultAssetBundle.of(context).loadString(asset);
