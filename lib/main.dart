@@ -64,100 +64,115 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: WebView(
-        userAgent: 'Mozilla/5.0 (Linux; Android 7.0; SM-G930V Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.125 Mobile Safari/537.36',
+    return WillPopScope(
+      onWillPop: () async {
+        _wvc?.goBack();
+        return false;
+      },
+      child:  Scaffold(
+        backgroundColor: Colors.black,
+        body: WebView(
+          userAgent: 'Mozilla/5.0 (Linux; Android 7.0; SM-G930V Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.125 Mobile Safari/537.36',
 
-        javascriptMode: JavascriptMode.unrestricted, //  <---  this is the key
+          javascriptMode: JavascriptMode.unrestricted, //  <---  this is the key
 
-        javascriptChannels: {
-                JavascriptChannel(
-                    name: 'Print',
-                    onMessageReceived: (JavascriptMessage message) {
+          javascriptChannels: {
+                  JavascriptChannel(
+                      name: 'Print',
+                      onMessageReceived: (JavascriptMessage message) {
 
-                    }),
+                      }),
 
-              },
+                },
 
-        onWebViewCreated: (WebViewController webViewController) {
-          _wvc = webViewController;
+          onWebViewCreated: (WebViewController webViewController) {
+            _wvc = webViewController;
 
-          _wvc?.loadUrl(
-              'https://www.notion.so/TODAY-758bfe52c0e54d308867a113c0366ce6');
-        },
-
-        onPageFinished: (String url) async {
-          String overrideCSS =
-              await CSSInjectionString(context, 'assets/custom.css');
-
-
-          _wvc?.runJavascript(overrideCSS);
-
-
-
-          String overrideJS =
-          await JSInjectionString(context, 'assets/custom.js');
-
-
-          _wvc?.runJavascript(overrideJS);
-
+            _wvc?.loadUrl(
+                'https://www.notion.so/TODAY-758bfe52c0e54d308867a113c0366ce6');
           },
+
+          onPageFinished: (String url) async {
+            String overrideCSS =
+                await CSSInjectionString(context, 'assets/custom.css');
+
+
+            _wvc?.runJavascript(overrideCSS);
+
+
+/*
+            String overrideJS =
+            await JSInjectionString(context, 'assets/custom.js');
+
+
+            _wvc?.runJavascript(overrideJS); */
+
+            },
+        ),
+        floatingActionButton: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            FloatingActionButton(
+              onPressed: () {
+                _wvc?.loadUrl(
+                    'https://www.notion.so/TODAY-758bfe52c0e54d308867a113c0366ce6');
+              },
+              tooltip: 'Reload',
+              child: const Icon(Icons.refresh),
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            FloatingActionButton(
+              onPressed: () {
+                _wvc?.goBack();
+              },
+              tooltip: 'Back',
+              child: const Icon(Icons.arrow_back),
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            FloatingActionButton(
+              onPressed: () {
+                _wvc?.goForward();
+              },
+              tooltip: 'Forward',
+              child: const Icon(Icons.arrow_forward),
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            FloatingActionButton(
+              onPressed: () async {
+
+                await undo(context);
+                }
+                                       ,
+
+
+              tooltip: 'Forward',
+              child: const Icon(Icons.undo),
+            ),
+          ],
+
+        ),
+        // This trailing comma makes auto-formatting nicer for build methods.
       ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton(
-            onPressed: () {
-              _wvc?.loadUrl(
-                  'https://www.notion.so/TODAY-758bfe52c0e54d308867a113c0366ce6');
-            },
-            tooltip: 'Reload',
-            child: const Icon(Icons.refresh),
-          ),
-          const SizedBox(
-            height: 10,
-          ),
-          FloatingActionButton(
-            onPressed: () {
-              _wvc?.goBack();
-            },
-            tooltip: 'Back',
-            child: const Icon(Icons.arrow_back),
-          ),
-          const SizedBox(
-            height: 10,
-          ),
-          FloatingActionButton(
-            onPressed: () {
-              _wvc?.goForward();
-            },
-            tooltip: 'Forward',
-            child: const Icon(Icons.arrow_forward),
-          ),
-          const SizedBox(
-            height: 10,
-          ),
-          FloatingActionButton(
-            onPressed: () async {
-
-              await undo(context);
-              }
-                                     ,
-
-
-            tooltip: 'Forward',
-            child: const Icon(Icons.undo),
-          ),
-        ],
-
-      ),
-      // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
   Future<void> undo(BuildContext context) async {
-      String overrideJS ='document.execCommand("undo", false, null);';
+      String overrideJS ="document.execCommand('undo', false, null);console.log('undo');var keyboardEvent = document.createEvent('KeyboardEvent'); var initMethod = typeof keyboardEvent.initKeyboardEvent !== 'undefined' ? 'initKeyboardEvent' : 'initKeyEvent'; keyboardEvent[initMethod]( 'keydown', true, true, window, true, false, false, false, 90, 0, ); document.dispatchEvent(keyboardEvent);var ctrlEvent = new KeyboardEvent('keydown', {bubbles : true, cancelable : true, keyCode : 17, char : 17, shiftKey : true}); var aEvent = new KeyboardEvent('keydown', {bubbles : true, cancelable : true, keyCode : 90, char : 90, shiftKey : true}); document.dispatchEvent(ctrlEvent); document.dispatchEvent(aEvent);";
+
+
+
+
+
+
+
+
+
 
 
 
